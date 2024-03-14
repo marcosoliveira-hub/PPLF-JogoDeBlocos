@@ -63,7 +63,7 @@ jogo_solucao(JogoInicial, JogoFinal) :-
 
 :- begin_tests(pequeno).
 
-    test(j1x1, [nondet, Final = Blocos]) :-
+    test(j1x1, [nondet, Final == Blocos]) :-
         Blocos = [
             bloco(3, 6, 7, 5)
         ],
@@ -71,7 +71,7 @@ jogo_solucao(JogoInicial, JogoFinal) :-
         jogo_solucao(jogo(1, 1, Inicial), jogo(1, 1, Final)).
 
 
-    test(j2x2, [nondet, Final = Blocos]) :-
+    test(j2x2, [nondet, Final == Blocos]) :-
         Blocos = [
             bloco(3, 4, 7, 9),
             bloco(6, 9, 5, 4),
@@ -81,7 +81,7 @@ jogo_solucao(JogoInicial, JogoFinal) :-
         reverse(Blocos, Inicial),
         jogo_solucao(jogo(2, 2, Inicial), jogo(2, 2, Final)).
 
-    test(j3x3, [nondet, Final = Blocos]) :-
+    test(j3x3, [nondet, Final == Blocos]) :-
         Blocos = [
             bloco(7, 3, 4, 9),
             bloco(3, 4, 8, 3),
@@ -101,7 +101,7 @@ jogo_solucao(JogoInicial, JogoFinal) :-
 
     :- begin_tests(medio).
 
-    test(j4x4, [nondet, Final = Blocos]) :-
+    test(j4x4, [nondet, Final == Blocos]) :-
         Blocos = [
             bloco(7, 7, 4, 8),
             bloco(3, 0, 2, 7),
@@ -123,7 +123,7 @@ jogo_solucao(JogoInicial, JogoFinal) :-
         reverse(Blocos, Inicial),
         jogo_solucao(jogo(4, 4, Inicial), jogo(4, 4, Final)).
 
-    test(j5x5, [nondet, Final = Blocos]) :-
+    test(j5x5, [nondet, Final == Blocos]) :-
         Blocos = [
             bloco(1, 6, 7, 5),
             bloco(4, 0, 0, 6),
@@ -154,7 +154,7 @@ jogo_solucao(JogoInicial, JogoFinal) :-
         reverse(Blocos, Inicial),
         jogo_solucao(jogo(5, 5, Inicial), jogo(5, 5, Final)).
 
-    test(j6x6, [nondet, Final = Blocos]) :-
+    test(j6x6, [nondet, Final == Blocos]) :-
         Blocos = [
             bloco(3, 0, 2, 4),
             bloco(9, 5, 5, 0),
@@ -201,7 +201,7 @@ jogo_solucao(JogoInicial, JogoFinal) :-
 
     :- begin_tests(grande).
 
-    test(j7x7, [nondet, Blocos = Final]) :-
+    test(j7x7, [nondet, Blocos == Final]) :-
         Blocos = [
             bloco(4, 1, 0, 8),
             bloco(7, 8, 1, 1),
@@ -270,7 +270,7 @@ blocos_adequados(Jogo) :-
     Jogo = jogo(L, C, Blocos),
     length(Blocos, N),
     N is L * C,
-    bloco_adequado(Jogo, 0).
+    verificar_blocos(Jogo, 0).
 
 
 :- begin_tests(blocos_validos).
@@ -335,11 +335,11 @@ blocos_adequados(Jogo) :-
 
     test(j2x3_t) :-
         Blocos = [
-            bloco(1, 2, 3, 4),
+            bloco(1, 2, 3, 4), % bloco valido
             bloco(3, 6, 7, 2),
             bloco(5, 6, 7, 6),
             bloco(3, 9, 7, 5),
-            bloco(7, 1, 7, 9),
+            bloco(7, 1, 7, 0), % bloco inválido
             bloco(7, 6, 7, 1)   
         ],
         bloco_adequado(jogo(2, 3, Blocos), 0).
@@ -399,12 +399,12 @@ bloco_adequado(Jogo, P) :-
         nth0(P2, Blocos, Bloco2),
         Bloco2 = bloco(Topo, _, _, _),
         Inferior = Topo
-    ; true),
-    
-    % Ir para o proximo bloco
-    P3 is P + 1,
-    bloco_adequado(Jogo, P3), !.
+    ; true), !.
 
-bloco_adequado(Jogo, P) :-
+verificar_blocos(Jogo, P) :-
     Jogo = jogo(L, C, _),
-    P >= L * C.
+    bloco_adequado(Jogo, P),
+    P1 is P + 1,
+    (P1 < L * C -> % Verificar se há mais blocos a serem verificados
+        verificar_blocos(Jogo, P1)
+    ; true). % Caso não haja mais blocos a serem verificados
