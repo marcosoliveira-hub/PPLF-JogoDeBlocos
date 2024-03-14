@@ -1,3 +1,6 @@
+% Discente: Marcos Vinicius de Oliveira
+% RA: 124408
+
 % vim: set ft=prolog:
 
 :- use_module(library(plunit)).
@@ -50,16 +53,11 @@
 %  Blocos e estão em posições adequadas.
 
 jogo_solucao(JogoInicial, JogoFinal) :-
-    % TODO: fazer uma versão eficiente.
-    %
-    %  Dica: Implemente inicialmente o predicado bloco_adequado e depois
-    %  blocos_adequados. Crie predicados auxiliares se necessário. Depois que o
-    %  predicado jogo_solucao estiver funcionando, faça uma nova implementação
-    %  eficiente dele.
     jogo(L, C, Blocos) = JogoInicial,
     jogo(L, C, Solucao) = JogoFinal,
-    blocos_adequados(JogoFinal),
-    permutation(Blocos, Solucao).
+    blocos_adequados(JogoFinal),    % versão eficiente -> Executar o predicado
+    permutation(Blocos, Solucao).   % blocos_adequados/1 antes de permutation/2
+
 
 :- begin_tests(pequeno).
 
@@ -96,10 +94,10 @@ jogo_solucao(JogoInicial, JogoFinal) :-
         reverse(Blocos, Inicial),
         jogo_solucao(jogo(3, 3, Inicial), jogo(3, 3, Final)).
 
-    :- end_tests(pequeno).
+:- end_tests(pequeno).
 
 
-    :- begin_tests(medio).
+:- begin_tests(medio).
 
     test(j4x4, [nondet, Final == Blocos]) :-
         Blocos = [
@@ -196,10 +194,10 @@ jogo_solucao(JogoInicial, JogoFinal) :-
         reverse(Blocos, Inicial),
         jogo_solucao(jogo(6, 6, Inicial), jogo(6, 6, Final)).
 
-    :- end_tests(medio).
+:- end_tests(medio).
 
 
-    :- begin_tests(grande).
+:- begin_tests(grande).
 
     test(j7x7, [nondet, Blocos == Final]) :-
         Blocos = [
@@ -256,7 +254,7 @@ jogo_solucao(JogoInicial, JogoFinal) :-
         reverse(Blocos, Inicial),
         jogo_solucao(jogo(7, 7, Inicial), jogo(7, 7, Final)).
 
-    :- end_tests(grande).
+:- end_tests(grande).
 
 
 %% blocos_adequados(?Jogo) is semidet
@@ -264,16 +262,8 @@ jogo_solucao(JogoInicial, JogoFinal) :-
 %  Verdadeiro se Jogo é uma estrutura jogo(L, C, Blocos), e todos os blocos de
 %  Blocos estão em posições adequadas.
 %
-%  TODO: adicionar os exemplos
 
-blocos_adequados(Jogo) :-
-    Jogo = jogo(L, C, Blocos),
-    length(Blocos, N),
-    N is L * C,
-    verificar_blocos(Jogo, 0).
-
-
-:- begin_tests(blocos_validos).
+:- begin_tests(blocos_adequados_teste).
 
     test(j2x3_t) :-
         Blocos = [
@@ -295,7 +285,7 @@ blocos_adequados(Jogo) :-
             bloco(7, 1, 7, 9),
             bloco(7, 6, 7, 1)   
         ],
-        bloco_adequado(jogo(1, 2, Blocos), 0).
+        blocos_adequados(jogo(1, 2, Blocos)).
         
     test(j3x2_t) :-
         Blocos = [
@@ -319,17 +309,23 @@ blocos_adequados(Jogo) :-
         ],
         blocos_adequados(jogo(3, 2, Blocos)).
 
-:- end_tests(blocos_validos).
-    
+:- end_tests(blocos_adequados_teste).
+
+
+blocos_adequados(Jogo) :-
+    Jogo = jogo(L, C, Blocos),
+    length(Blocos, N),
+    N is L * C,
+    verificar_blocos(Jogo, 0).
 
 
 %% bloco_adequado(?Jogo, ?P) is semidet
 %
 %  Verdadeiro se Jogo é uma estrutura jogo(L, C, Blocos), e o bloco na posição
 %  P de Blocos está em uma posição adequada.
-%
 
-:- begin_tests(bloco_valido).
+
+:- begin_tests(bloco_adequado_teste).
 
 % Criar testes para cada caso, seja true ou false.
 
@@ -377,7 +373,7 @@ blocos_adequados(Jogo) :-
         ],
         bloco_adequado(jogo(3, 2, Blocos), 0).
 
-:- end_tests(bloco_valido).
+:- end_tests(bloco_adequado_teste).
 
 
 bloco_adequado(Jogo, P) :-
@@ -400,6 +396,49 @@ bloco_adequado(Jogo, P) :-
         Bloco2 = bloco(Topo, _, _, _),
         Inferior = Topo
     ; true), !.
+
+% verificar_blocos(Jogo+, P+) is semidet
+%
+% Verifica se todos os blocos de um jogo estão em posições adequadas a
+% partir de um bloco inicial P
+
+:- begin_tests(verificar_blocos_teste).
+
+    test(j2x3_t_inicio) :-
+        Blocos = [
+            bloco(1, 2, 3, 4),
+            bloco(3, 6, 7, 2),
+            bloco(5, 6, 7, 6),
+            bloco(3, 9, 7, 5),
+            bloco(7, 1, 7, 9),
+            bloco(7, 6, 7, 1)
+        ],
+        verificar_blocos(jogo(2, 3, Blocos), 0).
+
+    test(j2x3_t_meio) :-
+        Blocos = [
+            bloco(0, 0, 0, 0), % bloco invalido
+            bloco(3, 6, 7, 2),
+            bloco(5, 6, 7, 6), % bloco de partida para verificação
+            bloco(3, 9, 7, 5),
+            bloco(7, 1, 7, 9),
+            bloco(7, 6, 7, 1)   
+        ],
+        verificar_blocos(jogo(2, 3, Blocos), 2).
+
+    test(j2x3_t_fim, fail) :-
+        Blocos = [
+            bloco(0, 0, 0, 0), % bloco invalido e ponto de partida
+            bloco(3, 6, 7, 2),
+            bloco(5, 6, 7, 6),
+            bloco(3, 9, 7, 5),
+            bloco(7, 1, 7, 9),
+            bloco(7, 6, 7, 1)   
+        ],
+        verificar_blocos(jogo(2, 3, Blocos), 0).
+
+:- end_tests(verificar_blocos_teste).
+
 
 verificar_blocos(Jogo, P) :-
     Jogo = jogo(L, C, _),
